@@ -22,7 +22,7 @@ trigger:
       - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: 'AgentVinod'
 
 stages:
 - stage: Build
