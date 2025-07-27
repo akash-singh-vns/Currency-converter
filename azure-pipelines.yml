@@ -1,17 +1,58 @@
-# HTML
-# Archive your static HTML project and save it with the build record.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# # HTML
+# # Archive your static HTML project and save it with the build record.
+# # Add steps that build, run tests, deploy, and more:
+# # https://aka.ms/yaml
+
+# trigger:
+# - main
+
+# pool:
+#   vmImage: ubuntu-latest
+
+# steps:
+# - task: ArchiveFiles@2
+#   inputs:
+#     rootFolderOrFile: '$(build.sourcesDirectory)'
+#     includeRootFolder: false
+# - task: PublishBuildArtifacts@1
 
 trigger:
-- main
+  branches:
+    include:
+      - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
-steps:
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(build.sourcesDirectory)'
-    includeRootFolder: false
-- task: PublishBuildArtifacts@1
+stages:
+- stage: Build
+  jobs:
+  - job: BuildJob
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js'
+
+    - script: |
+        echo "No build needed for plain JS"
+        echo "Contents of directory:"
+        ls -la
+      displayName: 'Check project files'
+
+- stage: Deploy
+  condition: succeeded()
+  jobs:
+  - job: DeployJob
+    steps:
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: '**'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)/web'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)/web'
+        ArtifactName: 'WebApp'
+        publishLocation: 'Container'
